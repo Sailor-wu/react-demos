@@ -5,14 +5,364 @@
     <script src="../build/react.development.js"></script>
     <script src="../build/react-dom.development.js"></script>
     <script src="../build/babel.min.js"></script>
+    <script src="../build/prop-types.js"></script>
+    <script src="../build/jquery.min.js"></script>
   </head>
   <body>
     <div id="example"></div>
+    <div id="first"></div>
+    <div id="jsxjavascript"></div>
+    <div id="arrray"></div>
+    <div id="compo"></div>
+    <div id="noteslist"></div>
+    <div id="proptitle"></div>
+    <br/>
+    <div id="mycomponent"></div>
+    <div id="mystate"></div>
+
+    <div id="speclinput"></div>
+
+    <div id="lifecycle"></div>
+
+    <div id="ajaxdata"></div>
+
+    <div id="ajaxpromise"></div>
     <script type="text/babel">
       ReactDOM.render(
         <h1>Hello, world!</h1>,
         document.getElementById('example')
       );
+   
+      ReactDOM.render(
+        <h4>者就是react</h4>,
+        document.getElementById('first')
+      );
+      //<!-- 在jsx使用javascript -->
+      var names =["Jones","Lukuas","Cici"];
+      ReactDOM.render(
+        <div>
+        {
+          names.map(function (name) {
+            return <div>hello,{name}</div>
+          })
+        }
+        </div>,
+        document.getElementById('jsxjavascript')
+      );
+
+
+      // 如果JavaScript变量是数组，JSX将隐式地包含数组的所有成员。
+      var arr = [<h1>这里是H1标签</h1>,<h1>这里是H1标签</h1>];
+      ReactDOM.render(
+        <div>{arr}</div>,
+        document.getElementById('arrray')
+      );  
+
+      // 自定义组件  类，继承React.Component  注意类名首字母一定要大写
+      class HelloMess extends React.Component{
+        render(){
+          // 返回h1标签，值为对应的属性的值 并且返回的根节点只能有一个
+          return <h1>{this.props.defaultvalue}--{this.props.name}<span>{this.props.name}</span></h1>
+        }
+      }
+      ReactDOM.render(
+        <HelloMess name="wuhaiyuan" defaultvalue="Hello"></HelloMess>,
+          document.getElementById('compo')
+      )
+
+      // 使用this.props反应。子节点访问组件的子节点。
+      // 注意获取children的时候，使用大写的React.Children.map
+      class NotesList extends React.Component{
+          render(){
+            return (
+              <ol>
+                {
+                  React.Children.map(this.props.children,function(child){
+                    return <li>{child}</li>
+                  })
+                }
+              </ol>
+            );
+          }
+      }
+
+      ReactDOM.render(
+        <NotesList>
+          <span>child-node-hello</span>  
+          <span>child-node-word</span>  
+        </NotesList>,
+        document.getElementById('noteslist')
+      );
+
+    // 自定义的Component有特殊的attr属性，
+    // 在React也有对应的properties  使用 PropTypes
+    // 注意要引入 /prop-types.js  文件
+    
+    class MyTitle extends React.Component{
+      constructor(props){
+        super(props)
+      }
+      static propTypes = {
+        title:PropTypes.string.isRequired,
+      }
+      static defaultProps ={
+        title :"Only You! Dear"
+      }
+      render(){
+        return <h1>指定标题：{this.props.title}</h1>
+      }
+    }
+
+    var proptitle = "Only You !";
+    /*如果在 创建MyTitle标签的时候，title属性没有，控制台会报错
+    很多时候，预防这样的错误，我们会给一个默认值*/
+    ReactDOM.render(
+      // <MyTitle title ={proptitle} ></MyTitle>,
+      <MyTitle></MyTitle>,
+      document.getElementById('proptitle')
+    );
+
+    // 查找DOM节点
+    //有时需要引用组件中的DOM节点。
+    //React提供ref属性，用于将DOM节点附加到response.createref()创建的实例上
+    //请注意，只有在将此组件挂载（渲染）到DOM之后才能这样做，否则将得到null。
+
+    class MyComponent extends React.Component{
+      // 构造
+      constructor(props){
+        super(props)
+        this.myTextInput = React.createRef()
+        this.handerClick = this.handerClick.bind(this)
+      }
+      handerClick(){
+        this.myTextInput.current.focus();
+      }
+      render(){
+        return (
+          <div>
+            <input type="text" ref={this.myTextInput} />
+            <input type="button" value="获取焦点" onClick={this.handerClick} />
+          </div>
+        );
+      }
+    }
+    ReactDOM.render(
+      <MyComponent />,
+      document.getElementById('mycomponent')
+    );
+
+
+    // 改变组件状态  this.state
+    class LikeButton extends React.Component{
+      constructor(props){
+        super(props)
+        this.state = {liked :false }
+        this.handerClick = this.handerClick.bind(this)
+      }
+      handerClick(event){
+        this.setState({liked : ! this.state.liked})
+      }
+      render(){
+        var text = this.state.liked?'like' : 'haven\'t liked';
+        return (
+          <p onClick = {this.handerClick}>You {text} click to toggle.</p>
+        );
+      }
+
+    }
+
+    ReactDOM.render(
+      <LikeButton/>,
+      document.getElementById('mystate')
+    );
+
+
+    // form 
+    class Imput extends React.Component{
+      // 构造
+      constructor(props){
+        super(props)
+        this.state = {value : 'calue'}
+        this.handerChange = this.handerChange.bind(this)
+      }
+      handerChange(event){
+        this.setState({value : event.target.value})
+      }
+      render(){
+        var value = this.state.value;
+        return (
+          <div>
+            <input type="text" value={value} onChange = {this.handerChange}  /> 
+            <p>{value}</p>
+          </div>
+        );
+      }
+    }
+
+    ReactDOM.render(
+      <Imput />,
+      document.getElementById('speclinput')
+    );
+
+    // 组件生命周期
+    /*组件的生命周期有三个主要部分:
+    挂载(插入DOM)、更新(重新呈现)和卸载(从DOM中删除)。
+    React提供了这些生命周期部分的挂钩。
+    will方法在事情发生之前被调用，did方法在事情发生之后被调用。*/
+    class ComLifecycle extends React.Component{
+
+      constructor(props){
+        super(props)
+        this.state = {opacity : 1.0}  //透明度
+      }      
+      componentDidMount(){
+        this.timer = setInterval(function () {
+          // 获取透明度，慢慢变透明。直到0.1在变回来
+          var opacity = this.state.opacity;
+          opacity -= 0.05;
+          if(opacity<0.1){
+            opacity = 1.0;
+          }
+          // if(opacity<0.1){
+          //   opacity +=0.15;
+          // }else if(opacity>0.9 ){
+          //   opacity -= 0.15;
+          // }
+          this.setState({
+            opacity :opacity
+          });
+        }.bind(this), 100);
+      }
+      render(){
+        return (
+          <div style={{opacity : this.state.opacity}}>
+              这里是文字描述，传进来的值：{this.props.name}  
+          </div>
+        );
+      }
+    }
+
+    ReactDOM.render(
+      <ComLifecycle  name="inValue"></ComLifecycle>,
+      document.getElementById('lifecycle')
+    );
+//http://127.0.0.1:8081/mail/getmaillist  ajaxdata
+
+    // ajax 根据服务器或者api返回数据
+    /*如何从服务器或API提供者获取组件的数据?
+    答案是使用Ajax在componentDidMount的事件处理程序中获取数据。
+    当服务器响应到达时，使用this.setState()存储数据，以触发UI的重新呈现。*/
+
+    class EmailList extends React.Component{
+      constructor(props){
+        super(props)
+        this.state = {
+          emails:[],
+        }
+      }
+      componentDidMount(){
+        $.get(this.props.source,function(result){
+          console.log(result)
+          this.setState({
+            emails: result
+          });
+        }.bind(this)); 
+      }
+      render(){
+            var elist = this.state.emails.map(
+              function(email){
+                return <li ><p>{email.subject}--{email.content}</p></li>
+            });
+            return <ul>{elist}</ul>
+      }
+    }
+
+
+    class UserGist extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = {
+          users: [],
+          lastGistUrl: ''
+        };
+      }
+
+      componentDidMount() {
+        $.get(this.props.source, function(result) {
+          console.log(result)
+          var lastGist = result[0];
+          this.setState({
+            users: result,
+            lastGistUrl: lastGist.html_url
+          });
+          // this.users = result
+        }.bind(this));
+      }
+
+      render() {
+        var list = this.state.users.map(function(client){
+                return <li key={client.id}><p>{client.owner.login}--{client.url}</p></li>
+            });
+        return <ul>{list}</ul>
+        // return (
+        //   <div>
+        //     {this.state.username}'s last gist is
+        //     <a href={this.state.lastGistUrl}>here</a>.
+        //   </div>
+        // );
+      }
+    }
+
+    ReactDOM.render(
+      <EmailList source="http://127.0.0.1:8081/mail/getmaillist"/>,
+      // <UserGist source="https://api.github.com/gists" />,
+      document.getElementById('ajaxdata')
+    );
+
+    class RepoList extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = {
+          loading: true,
+          error: null,
+          data: null
+        };
+      }
+
+      componentDidMount() {
+        this.props.promise.then(
+          value => this.setState({loading: false, data: value}),
+          error => this.setState({loading: false, error: error}));
+      }
+
+      render() {
+        if (this.state.loading) {
+          return <span>正在加载中...</span>;
+        }
+        else if (this.state.error !== null) {
+          return <span>Error: {this.state.error.message}</span>;
+        }
+        else {
+          var repos = this.state.data.items;
+          var repoList = repos.map(function (repo, index) {
+            return (
+              <li key={index}><a href={repo.html_url}>{repo.name}</a> ({repo.stargazers_count} stars) <br/> {repo.description}</li>
+            );
+          });
+          return (
+            <main>
+              <h1>Most Popular JavaScript Projects in Github</h1>
+              <ol>{repoList}</ol>
+            </main>
+          );
+        }
+      }
+    }
+    ReactDOM.render(
+      <RepoList promise={$.getJSON('https://api.github.com/search/repositories?q=javascript&sort=stars')} />,
+      document.getElementById('ajaxpromise')
+    );
+
     </script>
   </body>
 </html>
